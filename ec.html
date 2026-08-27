@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kaushal Setu — Skilling Outcome Tracker</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="stylez.css">
+  
+</head>
+<body>
+
+<div class="shell">
+  <nav class="rail" aria-label="Role navigation">
+    <div class="mark">कौ</div>
+    <button class="nav-btn active" data-view="trainee" aria-current="page">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+      Trainee
+    </button>
+    <button class="nav-btn" data-view="institute">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6"/></svg>
+      Institute
+    </button>
+    <button class="nav-btn" data-view="admin">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><path d="M4 19V9m6 10V5m6 14v-7"/></svg>
+      Admin
+    </button>
+  </nav>
+
+  <main>
+   
+    <section class="view active" id="view-trainee">
+      <header class="page-head">
+        <div class="eyebrow">Trainee Portal</div>
+        <h1>Log your training &amp; employment status</h1>
+        <p>This is what closes the loop — without trainees reporting back, nobody downstream (institute or government) knows whether a course actually led to a job.</p>
+      </header>
+
+      <div class="grid cols-2">
+        <div class="card">
+          <h3>New status update</h3>
+          <form id="traineeForm">
+            <div class="field">
+              <label for="t-name">Full name</label>
+              <input id="t-name" required placeholder="e.g. Priya Kadam">
+            </div>
+            <div class="field">
+              <label for="t-institute">Training institute</label>
+              <select id="t-institute" required>
+                <option value="">Select institute</option>
+                <option>ITI Nagpur Central</option>
+                <option>ITI Pune West</option>
+                <option>MSSDS Skill Center, Nashik</option>
+                <option>ITI Aurangabad</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="t-course">Course completed</label>
+              <select id="t-course" required>
+                <option value="">Select course</option>
+                <option>Electrician</option>
+                <option>Web Development</option>
+                <option>Welding Technology</option>
+                <option>Data Entry &amp; Office Assistant</option>
+                <option>Solar Panel Installation</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="t-status">Current status</label>
+              <select id="t-status" required>
+                <option value="">Select status</option>
+                <option value="employed">Employed</option>
+                <option value="unemployed">Unemployed / Seeking work</option>
+                <option value="training">Still in training</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="t-relevance">Is this job related to your training? (0 = not at all, 10 = fully)</label>
+              <input id="t-relevance" type="range" min="0" max="10" value="5">
+            </div>
+            <button class="btn" type="submit">Submit update</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h3>Your submitted history</h3>
+          <p class="sub">Records logged in this session</p>
+          <table id="traineeHistory" style="margin-top:10px;">
+            <thead><tr><th>Course</th><th>Status</th><th>Relevance</th></tr></thead>
+            <tbody></tbody>
+          </table>
+          <div class="note">Demo note: entries live in-memory for this session only, so refreshing the page clears them. Wire this form to Firebase Firestore (or your own backend) to persist real data.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ INSTITUTE VIEW ============ -->
+    <section class="view" id="view-institute">
+      <header class="page-head">
+        <div class="eyebrow">Institute Dashboard</div>
+        <h1>ITI Pune West — outcome summary</h1>
+        <p>See which courses are actually producing employment, and where trainees are dropping off or landing unrelated jobs.</p>
+      </header>
+
+      <div class="grid cols-3" style="margin-bottom:18px;">
+        <div class="card">
+          <h3>Placement rate</h3>
+          <div class="stat teal">71%</div>
+          <div class="sub">of trainees employed within 6 months</div>
+        </div>
+        <div class="card">
+          <h3>Course-job relevance</h3>
+          <div class="stat marigold">58%</div>
+          <div class="sub">jobs closely match trained skill</div>
+        </div>
+        <div class="card">
+          <h3>Dropout rate</h3>
+          <div class="stat rose">14%</div>
+          <div class="sub">did not complete enrolled course</div>
+        </div>
+      </div>
+
+      <div class="grid cols-2">
+        <div class="card">
+          <h3>Placement rate by course</h3>
+          <canvas id="chartInstitute" height="220"></canvas>
+        </div>
+        <div class="card">
+          <h3>Trainee roster</h3>
+          <table>
+            <thead><tr><th>Name</th><th>Course</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>Rahul Jadhav</td><td>Electrician</td><td><span class="pill employed">Employed</span></td></tr>
+              <tr><td>Sneha More</td><td>Web Development</td><td><span class="pill training">Training</span></td></tr>
+              <tr><td>Amit Pawar</td><td>Welding</td><td><span class="pill unemployed">Unemployed</span></td></tr>
+              <tr><td>Kavita Shinde</td><td>Solar Installation</td><td><span class="pill employed">Employed</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ADMIN VIEW ============ -->
+    <section class="view" id="view-admin">
+      <header class="page-head">
+        <div class="eyebrow">Government Dashboard · Skill, Employment &amp; Entrepreneurship Dept.</div>
+        <h1>Maharashtra skilling → employment bridge</h1>
+        <p>Each break in the bridge below marks where trainees are being lost between training and a real job — that gap is exactly what funding and curriculum decisions should target next.</p>
+      </header>
+
+      <div class="card bridge-card">
+        <h3>Statewide trainee flow</h3>
+        <div class="bridge-wrap">
+          <svg class="bridge-svg" viewBox="0 0 900 130" preserveAspectRatio="none">
+            <!-- deck -->
+            <path d="M40 70 H860" stroke="rgba(255,255,255,.15)" stroke-width="4" stroke-dasharray="34 10"/>
+            <!-- gap crack between certified and employed (skill gap visual) -->
+            <path d="M560 70 L590 55 L610 85 L630 60" stroke="var(--accent-rose)" stroke-width="4" fill="none" stroke-linecap="round"/>
+            <!-- pylons -->
+            <circle cx="140" cy="70" r="10" fill="var(--accent-marigold)"/>
+            <line x1="140" y1="70" x2="140" y2="120" stroke="var(--accent-marigold)" stroke-width="4"/>
+            <circle cx="450" cy="70" r="10" fill="var(--accent-teal)"/>
+            <line x1="450" y1="70" x2="450" y2="120" stroke="var(--accent-teal)" stroke-width="4"/>
+            <circle cx="760" cy="70" r="10" fill="var(--accent-rose)"/>
+            <line x1="760" y1="70" x2="760" y2="120" stroke="var(--accent-rose)" stroke-width="4"/>
+            <!-- flow pulse -->
+            <circle r="6" fill="#fff">
+              <animateMotion dur="3.2s" repeatCount="indefinite" path="M140 70 H760"/>
+            </circle>
+          </svg>
+        </div>
+        <div class="bridge-labels">
+          <div><span class="n mono" style="color:var(--accent-marigold)">2,84,110</span><span class="l">Trained</span></div>
+          <div><span class="n mono" style="color:var(--accent-teal)">2,01,760</span><span class="l">Certified</span></div>
+          <div><span class="n mono" style="color:var(--accent-rose)">1,09,840</span><span class="l">Employed (matched skill)</span></div>
+        </div>
+      </div>
+
+      <div class="grid cols-2" style="margin-top:18px;">
+        <div class="card">
+          <h3>Skill demand vs. supply</h3>
+          <p class="sub">Job postings scanned vs. trainees produced per skill (last quarter)</p>
+          <canvas id="chartGap" height="230"></canvas>
+        </div>
+        <div class="card">
+          <h3>Scheme-wise outcome (ROI proxy)</h3>
+          <table>
+            <thead><tr><th>Scheme</th><th>Trained</th><th>Placed %</th></tr></thead>
+            <tbody id="schemeTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:18px;">
+        <h3>Employability predictor <span style="color:var(--text-muted);font-weight:400;font-size:12px;">(ML model — plug in your friend's API here)</span></h3>
+        <p class="sub">Pick a course and district to see a predicted employability score. This calls <code class="mono">predictEmployability()</code>, which is stubbed with a simple heuristic — replace the fetch URL inside it with your Flask/FastAPI endpoint.</p>
+        <div style="display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;margin-top:14px;">
+          <div class="field" style="margin:0;">
+            <label for="p-course">Course</label>
+            <select id="p-course">
+              <option>Web Development</option>
+              <option>Electrician</option>
+              <option>Welding Technology</option>
+              <option>Solar Panel Installation</option>
+            </select>
+          </div>
+          <div class="field" style="margin:0;">
+            <label for="p-district">District</label>
+            <select id="p-district">
+              <option>Pune</option>
+              <option>Nagpur</option>
+              <option>Nashik</option>
+              <option>Aurangabad</option>
+            </select>
+          </div>
+          <button class="btn ghost" id="predictBtn" type="button">Predict score</button>
+          <div id="predictResult" class="stat marigold" style="margin:0;"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="toast" id="toast">Update submitted.</div>
+<script src="scriptz.js"></script>
+</body>
+</html>
